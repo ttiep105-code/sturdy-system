@@ -10,8 +10,37 @@
 <h1>📘 Học tiếng Trung</h1>
 
 <div id="vocab-container"></div>
-
 <button onclick="nextWord()">Từ tiếp theo</button>
+
+<div style="margin-top: 12px;">
+    <label for="filter-category">Lọc theo chủ đề:</label>
+    <select id="filter-category" onchange="filterByCategory()">
+        <option value="all">Tất cả</option>
+        <option value="coban">Cơ bản</option>
+        <option value="dulich">Du lịch</option>
+        <option value="kinhdoanh">Kinh doanh</option>
+    </select>
+</div>
+
+<div id="vocab-list" style="margin-top: 12px;"></div>
+
+<hr>
+
+<h2>➕ Thêm / Sửa từ</h2>
+<div id="add-word-form">
+    <input id="new-hanzi" type="text" placeholder="Hanzi (vd: 你好)">
+    <input id="new-pinyin" type="text" placeholder="Pinyin (vd: nǐ hǎo)">
+    <input id="new-meaning" type="text" placeholder="Nghĩa (vd: Xin chào)">
+    <select id="new-category">
+        <option value="coban">Cơ bản</option>
+        <option value="dulich">Du lịch</option>
+        <option value="kinhdoanh">Kinh doanh</option>
+    </select>
+    <button id="add-btn" onclick="addWord()">Thêm</button>
+    <button id="update-btn" onclick="updateWord()" style="display:none;">Cập nhật</button>
+    <button id="cancel-btn" onclick="cancelEdit()" style="display:none;">Hủy</button>
+    <p id="add-result"></p>
+</div>
 
 <hr>
 
