@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title> HanyuMaster - Chinese Learning App</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/png" href="./favicon.png" />
+    <link rel="shortcut icon" href="./favicon.png" />
+    <link rel="apple-touch-icon" href="./favicon.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <!-- SheetJS will be dynamically loaded via script.js -->
+  </head>
+
+  <body>
+    <nav class="navbar">
+      <div class="logo" > <a href="index.html"> Hanyu<span>Master</span></a></div>
+      <div class="nav-links">
+        <button onclick="showSection('manage')">
+          <i class="fas fa-book"></i> <span>Manage</span>
+        </button>
+        <button onclick="showSection('flashcard')">
+          <i class="fas fa-clone"></i> <span>Flashcards</span>
+        </button>
+        <button onclick="showSection('quiz')">
+          <i class="fas fa-tasks"></i> <span>Quiz</span>
+        </button>
+        <button onclick="showSection('games')">
+          <i class="fas fa-gamepad"></i> <span>Games</span>
+        </button>
+        <button onclick="showSection('listening')">
+          <i class="fas fa-headphones"></i> <span>Listening</span>
+        </button>
+        <button id="theme-toggle"><i class="fas fa-moon"></i></button>
+      </div>
+    </nav>
+
+    <main class="container">
+      <!-- MANAGEMENT SECTION -->
+      <section id="manage-section" class="active">
+        <div class="card">
+          <h2>Thư viện từ vựng</h2>
+          <div class="input-group">
+            <input
+              type="text"
+              id="chinese-input"
+              placeholder="Nhập Hanzi (VD: 学习)"
+            />
+            <select id="pos-input" class="pos-select">
+              <option value="none">Từ loại (Auto)</option>
+              <option value="noun">Danh từ</option>
+              <option value="verb">Động từ</option>
+              <option value="pronoun">Đại từ</option>
+              <option value="adj">Tính từ</option>
+            </select>
+            <button id="add-btn" class="btn-primary">Thêm</button>
+          </div>
+
+          <div class="import-tools">
+            <p>Thêm file excel vào đây(.xlsx)</p>
+            <input
+              type="file"
+              id="excel-upload"
+              accept=".xlsx, .xls, .csv"
+              hidden
+            />
+            <button
+              class="btn-secondary"
+              onclick="document.getElementById('excel-upload').click()"
+            >
+              <i class="fas fa-file-import"></i> Import Excel
+            </button>
+            <button class="btn-text" onclick="downloadTemplate()">
+              Tải Mẫu Excel
+            </button>
+          </div>
+        </div>
+
+        <div class="decks-section">
+          <div class="library-header">
+            <h3>Bộ từ vựng của bạn</h3>
+            <button
+              class="btn-primary btn-sm"
+              style="padding: 6px 12px"
+              onclick="createNewDeck()"
+            >
+              + Bộ mới
+            </button>
+          </div>
+          <div id="decks-list" class="decks-carousel"></div>
+        </div>
+
+        <div class="library-header" style="margin-top: 2rem">
+          <h3>
+            Từ vựng: <span id="current-deck-name">Mặc định</span> (<span
+              id="vocab-count"
+              >0</span
+            >
+            từ)
+          </h3>
+          <button class="btn-danger-outline" onclick="resetProgress()">
+            Xoá Bộ Này
+          </button>
+        </div>
+        <div id="vocab-list" class="vocab-grid"></div>
+      </section>
+
+      <!-- FLASHCARD SECTION -->
+      <section id="flashcard-section">
+        <div class="stats-bar">
+          <span>Score: <b id="flash-score" class="correct">0</b></span>
+          <div class="practice-modes">
+            <select
+              id="flashcard-deck-select"
+              class="pos-select"
+              style="padding: 5px; font-size: 0.9rem"
+              onchange="loadFlashcard()"
+            >
+              <option value="all">Tất cả các bộ</option>
+            </select>
+            <label
+              ><input
+                type="radio"
+                name="practice-type"
+                value="word"
+                checked
+                onchange="changePracticeType()"
+              />
+              Từ vựng</label
+            >
+            <label
+              ><input
+                type="radio"
+                name="practice-type"
+                value="sentence"
+                onchange="changePracticeType()"
+              />
+              Mẫu câu</label
+            >
+          </div>
+          <button class="btn-sm" onclick="toggleFlashMode()">
+            <i class="fas fa-sync"></i> Swap Mode
+          </button>
+        </div>
+        <div class="card flash-card">
+          <div id="flash-mode-label" class="label">
+            Dịch sang tiếng Trung Quốc:
+          </div>
+          <div
+            id="sentence-warning"
+            class="hidden"
+            style="
+              color: var(--text-sub);
+              font-size: 0.8rem;
+              margin-top: -10px;
+              margin-bottom: 10px;
+            "
+          >
+            ⚠️ Auto-generated sentence for structure practice
+          </div>
+          <div id="flash-prompt" class="prompt-text">---</div>
+          <div id="flash-feedback" class="feedback"></div>
+          <div class="input-container">
+            <input
+              type="text"
+              id="flash-answer"
+              placeholder="Đáp án..."
+              autocomplete="off"
+            />
+          </div>
+          <div class="controls">
+            <button id="flash-submit" class="btn-primary">Check</button>
+            <button id="flash-next" class="btn-secondary">Next / Skip</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- QUIZ SECTION -->
+      <section id="quiz-section">
+        <div class="stats-bar">
+          <span>Quiz Score: <b id="quiz-score" class="correct">0</b></span>
+        </div>
+        <div class="card quiz-card">
+          <div class="label">Chọn từ trung đúng:</div>
+          <div id="quiz-question" class="prompt-text">---</div>
+          <div id="quiz-options" class="options-grid"></div>
+          <div id="quiz-feedback" class="feedback"></div>
+          <button id="quiz-next" class="btn-primary hidden">
+            Next Question
+          </button>
+        </div>
+      </section>
+      <!-- GAMES SECTION -->
+      <section id="games-section">
+        <!-- GAMES HUB MENU -->
+        <div id="game-menu-container" class="card">
+          <h2>Mini-Games Hub</h2>
+          <p style="margin-bottom: 1.5rem; color: var(--text-sub)">
+            Chọn 1 minigame để luyện tập từ vựng và phản xạ tiếng Trung của bạn!
+          </p>
+          <div class="options-grid" style="grid-template-columns: 1fr">
+            <button class="option-btn" onclick="openGame('match')">
+              <i class="fas fa-th"></i> Memory Match (Classic)
+            </button>
+            <button class="option-btn" onclick="openGame('speed')">
+              <i class="fas fa-bolt"></i> Speed Quiz (5s Time Limit)
+            </button>
+            <button class="option-btn" onclick="openGame('sniper')">
+              <i class="fas fa-crosshairs"></i> Sniper Mode (Target Practice)
+            </button>
+          </div>
+        </div>
+
+        <!-- MATCHING GAME -->
+        <div id="game-match-container" class="hidden">
+          <div class="stats-bar">
+            <button class="btn-sm" onclick="backToGameMenu()">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <span style="font-size: 1.2rem; font-weight: bold"
+              >Level: <b id="match-level" class="correct">1</b></span
+            >
+            <button class="btn-sm" onclick="startMatchingGame()">
+              <i class="fas fa-sync"></i> Restart
+            </button>
+          </div>
+          <div class="card quiz-card" style="padding: 1rem">
+            <div class="label" style="margin-bottom: 1rem">
+              Tìm cặp từ tương ứng (Trung - Việt)
+            </div>
+            <div id="match-grid" class="match-grid"></div>
+          </div>
+        </div>
+
+        <!-- SPEED QUIZ -->
+        <div id="game-speed-container" class="hidden">
+          <div class="stats-bar">
+            <button class="btn-sm" onclick="backToGameMenu()">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <span style="font-size: 1.2rem; font-weight: bold"
+              >Combo: <b id="speed-combo" class="correct">0</b>x</span
+            >
+            <span style="font-size: 1.2rem; font-weight: bold"
+              >Score: <b id="speed-score" class="correct">0</b></span
+            >
+          </div>
+          <div
+            id="speed-quiz-card"
+            class="card quiz-card"
+            style="position: relative; overflow: hidden; min-height: 250px"
+          >
+            <div
+              style="
+                font-size: 1.5rem;
+                font-weight: bold;
+                margin-bottom: 1rem;
+                color: var(--error);
+              "
+              id="speed-timer-display"
+            >
+              05.00s
+            </div>
+            <div class="label">Nghĩa của từ:</div>
+            <div id="speed-question" class="prompt-text">---</div>
+            <div id="speed-options" class="options-grid"></div>
+
+            <div
+              id="speed-game-over"
+              class="hidden"
+              style="
+                position: absolute;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.8);
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 10;
+              "
+            >
+              <h2 style="color: white; font-size: 2rem; margin-bottom: 1rem">
+                Game Over!
+              </h2>
+              <button class="btn-primary" onclick="openGame('speed')">
+                <i class="fas fa-sync"></i> Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SNIPER MODE -->
+        <div id="game-sniper-container" class="hidden">
+          <div class="stats-bar">
+            <button class="btn-sm" onclick="backToGameMenu()">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <span style="font-size: 1.2rem; font-weight: bold"
+              >Score: <b id="sniper-score" class="correct">0</b></span
+            >
+            <span
+              style="font-size: 1.2rem; font-weight: bold; color: var(--error)"
+              >Wrong: <b id="sniper-lives">0</b>/5</span
+            >
+          </div>
+          <div
+            class="card"
+            style="
+              padding: 1rem;
+              position: relative;
+              overflow: hidden;
+              min-height: 400px;
+              display: flex;
+              flex-direction: column;
+            "
+            id="sniper-canvas-wrapper"
+          >
+            <div
+              style="
+                text-align: center;
+                font-size: 2rem;
+                font-weight: bold;
+                color: var(--primary);
+                margin-bottom: 1rem;
+                padding-bottom: 10px;
+                border-bottom: 2px solid var(--border);
+              "
+              id="sniper-target-word"
+            >
+              ---
+            </div>
+            <div
+              id="sniper-canvas"
+              style="
+                flex: 1;
+                position: relative;
+                overflow: hidden;
+                min-height: 300px;
+              "
+            >
+              <!-- Words will be injected here -->
+            </div>
+            <div
+              id="sniper-game-over"
+              class="hidden"
+              style="
+                position: absolute;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.8);
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 10;
+              "
+            >
+              <h2 style="color: white; font-size: 2rem; margin-bottom: 1rem">
+                Game Over!
+              </h2>
+              <button class="btn-primary" onclick="startSniperMode()">
+                <i class="fas fa-sync"></i> Play Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LISTENING SECTION -->
+      <section id="listening-section">
+        <!-- Hub Menu -->
+        <div id="listening-menu-container" class="card">
+          <h2>Listening Practice</h2>
+          <p style="margin-bottom: 1.5rem; color: var(--text-sub)">
+            Chọn bài nghe để luyện tập
+          </p>
+          <div
+            id="listening-decks-list"
+            class="options-grid"
+            style="grid-template-columns: 1fr"
+          >
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Player View -->
+        <div id="listening-player-container" class="hidden">
+          <div class="stats-bar">
+            <button class="btn-sm" onclick="backToListeningMenu()">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <span
+              style="font-size: 1.2rem; font-weight: bold"
+              id="listening-title-display"
+              >Title</span
+            >
+            <span style="width: 50px"></span
+            ><!-- spacer -->
+          </div>
+          <div
+            class="card"
+            style="
+              padding: 1rem;
+              display: flex;
+              flex-direction: column;
+              gap: 1rem;
+            "
+          >
+            <!-- Audio player -->
+            <div
+              style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 1rem 0;
+                background: var(--bg-color);
+                border-radius: 8px;
+              "
+            >
+              <audio
+                id="listening-audio-player"
+                controls
+                style="width: 90%; max-width: 400px"
+              >
+                <source id="listening-audio-source" src="" type="audio/mpeg" />
+                Your browser does not support the audio element.
+              </audio>
+            </div>
+            <!-- Quiz Container -->
+            <div
+              id="listening-quiz-container"
+              style="
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                overflow-y: auto;
+                max-height: 600px;
+                padding-right: 10px;
+              "
+            >
+              <!-- Questions injected via JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
