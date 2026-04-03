@@ -462,3 +462,6 @@ button {
     display: none;
   }
 }
+.logo a {
+    text-decoration: none;
+}
